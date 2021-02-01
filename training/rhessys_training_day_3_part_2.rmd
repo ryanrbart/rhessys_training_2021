@@ -1,0 +1,232 @@
+---
+title: "rhessys_training_day_3"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+## Load libraries
+
+We need to first import a couple of R packages.
+
+```{r}
+
+install.packages("devtools")
+library(devtools)
+
+remotes::install_github(repo = "RHESSys/RHESSysIOinR", ref = "develop")
+
+library(RHESSysIOinR)
+
+```
+
+
+
+## Running RHESSys from R
+
+In RHESSys, there is a testing folder that contains a model setup for a small watershed (Watershed 8 in H.J. Andrews Experimental Forest in Oregon). We will be using this model setup to do a inital run with the model. 
+
+
+### Setup
+
+Change the home directory in R to the testing folder in RHESSys. 
+
+```{r, setup, include=FALSE}
+
+knitr::opts_knit$set(root.dir = "rhessys/Testing/")
+knitr::opts_chunk$set(echo = TRUE)
+
+getwd()
+```
+
+
+### IOin_rhessys_input
+
+This is the basic RHESSys information needed to run RHESSys from the command line.
+
+```{r }
+input_rhessys = IOin_rhessys_input(
+  version = "../RHESSys/rhessys7.3",
+  tec_file = "tecfiles/w8TC.tec",
+  world_file = "worldfiles/w8TC.world",
+  world_hdr_prefix = "w8TC",
+  flowtable = "flowtables/w8TC.flow",
+  start = "1989 10 1 1",
+  end = "2000 10 1 1",
+  output_folder = "out_training",
+  output_prefix = "w8TC",
+  commandline_options = c("-g -b")
+)
+```
+
+### IOin_tec_std
+
+This creates a tec file, automatically adding entries for print_daily_on and print_daily_growth_on based on the start date, and adding output_current_state at the end date. output_current_state can be toggled off by setting output_state=FALSE.
+
+```{r}
+input_tec_data = IOin_tec_std(start = "1989 10 1 1",
+                              end = "2000 10 1 1",
+                              output_state = TRUE)
+```
+
+### IOin_hdr
+
+This creates a header file in a folder using the world_hdr_prefix from IOin_rhessys_input and using the def files specified in the function below.
+
+```{r}
+input_hdr = IOin_hdr(
+  basin = "defs/basin.def",
+  hillslope = "defs/hill.def",
+  zone = "defs/zone.def",
+  soil = "defs/soil_sandyloam.def",
+  landuse = "defs/lu_undev.def",
+  stratum = "defs/veg_douglasfir.def",
+  basestations = "clim/w8_base"
+)
+```
+
+### Run RHESSys
+
+Together, these inputs (IOin_X) can be used to run RHESSys for a single simulation with very simple options. 
+
+```{r, echo=FALSE, results='hide'}
+run_rhessys_single(
+  input_rhessys = input_rhessys,
+  hdr_files = input_hdr,
+  tec_data = input_tec_data
+)
+```
+
+
+
+
+### Move RHESSys output into R
+
+There are a number of functions to quickly analyze output. Here we import watershed-scale RHESSys output into R and look at what variables are available for plotting.
+
+
+```{r}
+
+w8TC_results <- readin_rhessys_output("out_training/w8TC")
+
+ls(w8TC_results$bd)
+
+ls(w8TC_results$bdg)
+
+```
+
+
+### Plot some timeseries
+
+```{r}
+
+plot(w8TC_results$bdg$plantc)
+
+plot(w8TC_results$bdg$lai)
+
+plot(w8TC_results$bdg$litrc)
+
+plot(w8TC_results$bd$trans)
+
+plot(w8TC_results$bd$streamflow)
+
+```
+
+
+
+
+
+### Run RHESSys again after modifying soil depth and increasing temperatures
+
+The IOin_def_pars function modifies def file parameters. This is done by creating modifed def files with the altered paramters, and pointing to that new def file in the header file. This allows for many parameter sets to be generated through many def files and associated header files.
+
+We change the soil depth parameter from 200 m to 1 m.
+We add 3C to both max and min temperatures in the model
+We change the output filename so we do not write over previous files
+
+```{r, echo=FALSE, results='hide'}
+input_def_pars = IOin_def_pars_simple(
+  list("defs/soil_sandyloam.def", "soil_depth", (1))
+)
+
+input_rhessys = IOin_rhessys_input(
+  version = "../RHESSys/rhessys7.3",
+  tec_file = "tecfiles/w8TC.tec",
+  world_file = "worldfiles/w8TC.world",
+  world_hdr_prefix = "w8TC",
+  flowtable = "flowtables/w8TC.flow",
+  start = "1989 10 1 1",
+  end = "2000 10 1 1",
+  output_folder = "out_training",
+  output_prefix = "w8TC_2",
+  commandline_options = c("-g -b -tchange 3 3")
+)
+
+run_rhessys_single(
+  input_rhessys = input_rhessys,
+  hdr_files = input_hdr,
+  tec_data = input_tec_data,
+  def_pars = input_def_pars
+)
+```
+
+
+
+### Replot the timeseries
+
+```{r}
+
+w8TC_results_2 <- readin_rhessys_output("out_training/w8TC_2")
+
+
+plot(w8TC_results_2$bdg$plantc)
+
+plot(w8TC_results_2$bdg$lai)
+
+plot(w8TC_results_2$bdg$litrc)
+
+plot(w8TC_results_2$bd$trans)
+
+plot(w8TC_results_2$bd$streamflow)
+
+```
+
+
+
+
+
+
+
+### IOin_clim
+
+This is just to generate a basestation on the fly, but can be useful when running across multiple climate series, and to ensure the paths in the base station file are correct. Future additions will support more complex modification of climate sequences and more.
+
+```{r, echo=FALSE, results='hide'}
+input_clim = IOin_clim(
+  base_station_id = 101,
+  x_coordinate = 100.0,
+  y_coordinate = 100.0,
+  z_coordinate = 975,
+  effective_lai = 3.5,
+  screen_height = 160,
+  daily_prefix = "clim/w8_daily"
+)
+# if set to existing file name, existing base station will be overwritten.
+input_hdr$base_stations = "clim/w8_base_test"
+
+run_rhessys_single(
+  input_rhessys = input_rhessys,
+  hdr_files = input_hdr,
+  tec_data = input_tec_data,
+  clim_base = input_clim
+)
+
+```
+
+
+
+
+
+

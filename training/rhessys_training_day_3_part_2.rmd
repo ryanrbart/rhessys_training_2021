@@ -50,14 +50,14 @@ This is the basic RHESSys information needed to run RHESSys from the command lin
 input_rhessys = IOin_rhessys_input(
   version = "../RHESSys/rhessys7.3",
   tec_file = "tecfiles/w8TC.tec",
-  world_file = "worldfiles/w8TC.world",
+  world_file = "worldfiles/w8TC_dated.world",
   world_hdr_prefix = "w8TC",
   flowtable = "flowtables/w8TC.flow",
   start = "1989 10 1 1",
-  end = "2000 10 1 1",
+  end = "2050 10 1 1",
   output_folder = "out_training",
   output_prefix = "w8TC",
-  commandline_options = c("-g -b")
+  commandline_options = c("-g -b -climrepeat")
 )
 ```
 

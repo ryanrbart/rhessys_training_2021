@@ -60,18 +60,18 @@ r.mask -r                                 # Remove mask
 # Import data
 
 # DEM
-r.import input=rhessys_training_2021/data/dem/USGS_1_n37w119.tif output=dem_tule
+r.import input=YOUR_PATH\rhessys_training_2021\data\dem\USGS_1_n37w119.tif output=dem_tule
 
 
 # Land Cover (This one can take 15+ minutes)
-r.import input=rhessys_training_2021/data/land_cover/NLCD_2016_Land_Cover_L48_20190424_WyNf3uzmvW1qNoNrXOiA.tiff output=lc_tule --overwrite
+r.import input=YOUR_PATH\rhessys_training_2021\data\land_cover\NLCD_2016_Land_Cover_L48_20190424_WyNf3uzmvW1qNoNrXOiA.tiff output=lc_tule --overwrite
 
 
 # Gauge location.
 # USGS provides lat/long, but needed to change coordinate from lat/long to UTM zone 10. Used a conversion calculator at https://tool-online.com/en/coordinate-converter.php. 
 In theory, these might work on command line. However, neither worked and instead used gui by calling v.in.ascii.
-cat /rhessys_training_2021/data/gauges/gauges_tule.txt | v.in.ascii out=gauges x=2 y=3 cat=1 columns='cat int, x double precision, y double precision, name varchar(15)' 
-v.in.ascii input=/rhessys_training_2021/data/gauges/gauges_tule.txt  out=gauges x=2 y=3 cat=1 columns='cat int, x double precision, y double precision, name varchar(15)'
+cat YOUR_PATH\rhessys_training_2021\data\gauges\gauges_tule.txt | v.in.ascii out=gauges x=2 y=3 cat=1 columns='cat int, x double precision, y double precision, name varchar(15)' 
+v.in.ascii input=YOUR_PATH\rhessys_training_2021\data\gauges\gauges_tule.txt  out=gauges x=2 y=3 cat=1 columns='cat int, x double precision, y double precision, name varchar(15)'
 
 
 
@@ -186,18 +186,18 @@ r.mapcalc 'understory_cover_fraction = if(lc_overstory_tule == 42,0.6,0.6)' --ov
 
 # ------------------------
 # Export to ascii for RHESSysPreprocessing script
-r.out.ascii input=basin_tule@PERMANENT output="/rhessys_training_2021/data/rasters_tule/basin" --overwrite
-r.out.ascii input=dem_tule_cropped@PERMANENT output="/rhessys_training_2021/data/rasters_tule/dem" --overwrite
-r.out.ascii input=streams@PERMANENT output="/rhessys_training_2021/data/rasters_tule/streams" --overwrite
-r.out.ascii input=hill@PERMANENT output="/rhessys_training_2021/data/rasters_tule/hill" --overwrite
-r.out.ascii input=basin@PERMANENT output="/rhessys_training_2021/data/rasters_tule/subwatershed" --overwrite
-r.out.ascii input=patch.cl@PERMANENT output="/rhessys_training_2021/data/rasters_tule/patch" --overwrite
-r.out.ascii input=slope@PERMANENT output="/rhessys_training_2021/data/rasters_tule/slope" --overwrite
-r.out.ascii input=aspect@PERMANENT output="/rhessys_training_2021/data/rasters_tule/aspect" --overwrite
-r.out.ascii input=ehr.100@PERMANENT output="/rhessys_training_2021/data/rasters_tule/ehr" --overwrite
-r.out.ascii input=whr.100@PERMANENT output="/rhessys_training_2021/data/rasters_tule/whr" --overwrite
-r.out.ascii input=lc_overstory_tule@PERMANENT output="/rhessys_training_2021/data/rasters_tule/lc_overstory" --overwrite
-r.out.ascii input=lc_understory_tule@PERMANENT output="/rhessys_training_2021/data/rasters_tule/lc_understory" --overwrite
+r.out.ascii input=basin_tule@PERMANENT output="\rhessys_training_2021\data\rasters_tule\basin" --overwrite
+r.out.ascii input=dem_tule_cropped@PERMANENT output="\rhessys_training_2021\data\rasters_tule\dem" --overwrite
+r.out.ascii input=streams@PERMANENT output="\rhessys_training_2021\data\rasters_tule\streams" --overwrite
+r.out.ascii input=hill@PERMANENT output="\rhessys_training_2021\data\rasters_tule\hill" --overwrite
+r.out.ascii input=basin@PERMANENT output="\rhessys_training_2021\data\rasters_tule\subwatershed" --overwrite
+r.out.ascii input=patch.cl@PERMANENT output="\rhessys_training_2021\data\rasters_tule\patch" --overwrite
+r.out.ascii input=slope@PERMANENT output="\rhessys_training_2021\data\rasters_tule\slope" --overwrite
+r.out.ascii input=aspect@PERMANENT output="\rhessys_training_2021\data\rasters_tule\aspect" --overwrite
+r.out.ascii input=ehr.100@PERMANENT output="\rhessys_training_2021\data\rasters_tule\ehr" --overwrite
+r.out.ascii input=whr.100@PERMANENT output="\rhessys_training_2021\data\rasters_tule\whr" --overwrite
+r.out.ascii input=lc_overstory_tule@PERMANENT output="\rhessys_training_2021\data\rasters_tule\lc_overstory" --overwrite
+r.out.ascii input=lc_understory_tule@PERMANENT output="\rhessys_training_2021\data\rasters_tule\lc_understory" --overwrite
 
 
 

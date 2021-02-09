@@ -64,7 +64,7 @@ r.import input=YOUR_PATH\rhessys_training_2021\data\dem\USGS_1_n37w119.tif outpu
 
 
 # Land Cover (This one can take 15+ minutes)
-r.import input=YOUR_PATH\rhessys_training_2021\data\land_cover\NLCD_2016_Land_Cover_L48_20190424_WyNf3uzmvW1qNoNrXOiA.tiff output=lc_tule --overwrite
+r.import input=YOUR_PATH\rhessys_training_2021\data\land_cover\NLCD_2016_Land_Cover_tule_region.tif output=lc_tule --overwrite
 
 
 # Gauge location.

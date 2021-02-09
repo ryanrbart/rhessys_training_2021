@@ -358,7 +358,30 @@ mean(scenario1_results$bd$plantc)
 
 
 
+# ---------------
+# Make some plots
 
+install.packages("ggplot2")
+install.packages("dplyr")
+library(ggplot2)
+library(dplyr)
+
+
+# Plot timeseries
+ggplot() +
+  geom_line(data = baseline_results$bd, aes(x=date, y=lai)) +
+  geom_line(data = scenario1_results$bd, aes(x=date, y=lai))
+
+
+# Plot streamflow
+baseline_results$bd %>% 
+  bind_rows(scenario1_results$bd, .id = "scenario") %>% 
+  dplyr::select(-date) %>% 
+  group_by(wy, scenario) %>% 
+  summarise_all(sum) %>% 
+  ggplot(data = .) +
+  geom_col(aes(x=wy, y=streamflow)) +
+  facet_wrap(.~scenario)
 
 
 

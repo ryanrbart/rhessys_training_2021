@@ -1,6 +1,4 @@
 # run_RHESSysPreprocess
-# Will Burke 3/5/18
-# Last updated 4/20/19
 
 # Instructions
 # ------------
@@ -45,14 +43,14 @@ library(RHESSysPreprocessing)
 # 1) Set type to "raster"
 type = "raster"
 # 2) Set typepars to the path of the folder containing your rasters
-typepars = "data/tule/rasters_tule/"
+typepars = "ws_tule/data/rasters_tule/"
 
 
 # Template
 # --------
 # The worldfile template is the key document that outlines how your worldfile will be built.
 # The template variable should point to the name and location of your template.
-template = "scripts/template_tule"
+template = "scripts/template_tule_gridded"
 
 
 # Name

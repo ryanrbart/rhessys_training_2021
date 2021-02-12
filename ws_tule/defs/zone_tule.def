@@ -1,0 +1,15 @@
+1.000000	   zone_default_ID
+0.000029	   atm_trans_lapse_rate
+0.001500	   dewpoint_lapse_rate
+10.000000	   max_effective_lai
+0.001000	   lapse_rate
+0.025400	   pptmin
+0.750000	   sea_level_clear_sky_trans
+0.400000	   temcf
+1.000000	   wind
+3.000000	   max_snow_temp
+-1.000000	   min_rain_temp
+0.000600	   n_deposition
+0.006300	  lapse_rate_Tmax
+0.006400	  lapse_rate_Tmin
+0.000093		  lapse_rate_precip_default

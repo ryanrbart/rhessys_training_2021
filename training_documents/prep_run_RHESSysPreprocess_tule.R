@@ -52,14 +52,14 @@ typepars = "data/tule/rasters_tule/"
 # --------
 # The worldfile template is the key document that outlines how your worldfile will be built.
 # The template variable should point to the name and location of your template.
-template = "ws/tule/worldfiles/templates/template_tule"
+template = "scripts/template_tule"
 
 
 # Name
 # ----
 # Set the name and path for all function outputs.
 # Suffixes of .world, .flow, and .meta will be appended to the worldfile, flowtable, and metadata files respectively.
-name = "ws/tule/worldfiles/tule"
+name = "ws_tule/worldfiles/tule"
 
 # Overwrite
 # ---------

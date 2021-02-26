@@ -8,7 +8,7 @@ annual       annual_climate_prefix
 0       number_non_critical_annual_sequences
 monthly       monthly_climate_prefix
 0       number_non_critical_monthly_sequences
-ws/tule/clim/tule_pixel_8_1980_2016       daily_climate_prefix
+ws_tule/clim/tule_pixel_8_1980_2016       daily_climate_prefix
 0       number_non_critical_daily_sequences
 hourly       hourly_climate_prefix
 0       number_non_critical_hourly_sequences

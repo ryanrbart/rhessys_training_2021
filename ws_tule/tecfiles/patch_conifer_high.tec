@@ -1,0 +1,3 @@
+2000 10 1 1 print_daily_on
+2000 10 1 2 print_daily_growth_on
+2100 9 29 1 output_current_state

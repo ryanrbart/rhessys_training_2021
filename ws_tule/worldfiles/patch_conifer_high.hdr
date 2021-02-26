@@ -1,0 +1,17 @@
+1		num_basin_default_files
+ws_tule/defs/basin_tule.def		basin_default_file
+1		num_hillslope_default_files
+ws_tule/defs/hill_tule/hill_tule.def		hillslope_default_file
+1		num_zone_default_files
+ws_tule/defs/zone_tule.def		zone_default_file
+1		num_soil_default_files
+ws_tule/defs/patch_tule/patch_tule.def		soil_default_file
+1		num_landuse_default_files
+ws_tule/defs/lu_tule.def		landuse_default_file
+4		num_stratum_default_files
+ws_tule/defs/veg_conifer_tule/veg_conifer_tule.def		stratum_default_file
+ws_tule/defs/veg_understory_tule/veg_understory_tule.def		stratum_default_file
+ws_tule/defs/veg_shrub_tule.def		stratum_default_file
+ws_tule/defs/veg_nonveg_tule.def		stratum_default_file
+1		num_base_stations_files
+ws_tule/clim/tule_pixel_8_1980_2016.base		base_stations_file

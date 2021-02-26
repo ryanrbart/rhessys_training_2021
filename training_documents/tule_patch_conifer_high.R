@@ -2,7 +2,7 @@
 # Patch: Conifer high
 
 
-# remotes::install_github(repo = "RHESSys/RHESSysIOinR", ref = "develop")
+# remotes::install_github(repo = "RHESSys/RHESSysIOinR")
 library(RHESSysIOinR)
 
 
@@ -11,7 +11,7 @@ library(RHESSysIOinR)
 
 
 input_rhessys = IOin_rhessys_input(
-  version = "ws_tule/bin/rhessys7.3",
+  version = "ws_tule/bin/rhessys7.2",
   tec_file = "ws_tule/tecfiles/patch_conifer_high.tec",
   world_file = "ws_tule/worldfiles/patch_conifer_high.world",
   world_hdr_prefix = "patch_conifer_high",
@@ -37,7 +37,7 @@ input_hdr = IOin_hdr(
   landuse = "ws_tule/defs/lu_tule.def",
   stratum =  c("ws_tule/defs/veg_conifer_tule.def", "ws_tule/defs/veg_understory_tule.def",
                "ws_tule/defs/veg_shrub_tule.def", "ws_tule/defs/veg_nonveg_tule.def"),
-  basestations = "ws_tule/clim/tule_maca_gridmet_1980_2016.base"
+  basestations = "ws_tule/clim/tule_pixel_8_1980_2016.base"
 )
 
 
@@ -74,7 +74,7 @@ input_def_pars = IOin_def_pars_simple(
   list("ws_tule/defs/veg_understory_tule.def", "epc.livewood_turnover", 0.192506467),
   list("ws_tule/defs/veg_understory_tule.def", "epc.branch_turnover", 0.017954816),
   list("ws_tule/defs/veg_understory_tule.def", "epc.height_to_stem_coef", 0.25),
-  list("ws_tule/defs/veg_understory_tule.def", "epc.resprout_leaf_carbon", 0.02),
+  list("ws_tule/defs/veg_understory_tule.def", "epc.resprout_leaf_carbon", 0.02)
 )
 
 

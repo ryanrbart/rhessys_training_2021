@@ -11,6 +11,7 @@ Steps
 2. Move training documents
 cp rhessys_training_2021/training_documents/training_parameterize_vegetation.txt scripts/
 cp rhessys_training_2021/training_documents/tule_patch_conifer_high.r scripts/
+cp rhessys_training_2021/training_documents/tule_patch_conifer_high_post.r scripts/
 
 
 3. Copy new clim files to ws_tule folder
@@ -34,11 +35,11 @@ cp RHESSys/rhessys/rhessys.7.2 ws_tule/bin
 
 
 7. Run model via R
-Open scripts/tule_patch_conifer_high.r in Rstudio
+Open scripts/tule_patch_conifer_high.r and scripts/tule_patch_conifer_high_post.r in Rstudio
 
 
 8. Run model via command line
-
+ws_tule/bin/rhessys7.2 -w ws_tule/worldfiles/patch_conifer_high.world -whdr ws_tule/worldfiles/patch_conifer_high.hdr -t ws_tule/tecfiles/patch_conifer_high.tec -r ws_tule/flowtables/patch_conifer_high.flow -st 2000 10 1 1 -ed 2100 09 30 1 -pre ws_tule/out/patch_conifer_high -b -p -c -g -vmort_off -climrepeat
 
 
 

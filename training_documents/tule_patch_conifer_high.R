@@ -20,7 +20,7 @@ input_rhessys = IOin_rhessys_input(
   end = "2100 09 30 1",
   output_folder = "ws_tule/out",
   output_prefix = "patch_conifer_high",
-  commandline_options = c("-b -g -c -vmort_off -asciigrid -climrepeat")
+  commandline_options = c("-b -p -c -g -vmort_off -climrepeat")
 )
 
 

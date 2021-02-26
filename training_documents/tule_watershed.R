@@ -43,7 +43,7 @@ input_hdr = IOin_hdr(
 
 input_def_pars = IOin_def_pars_simple(
   # Hill level parameters
-  list("ws_tule/defs/hill_tule.def.def", "gw_loss_coeff", (0.140574399)),
+  list("ws_tule/defs/hill_tule.def", "gw_loss_coeff", (0.140574399)),
   # -----
   # Patch level parameters
   list("ws_tule/defs/patch_tule.def", "m", (4.580245)),

@@ -10,8 +10,8 @@ Steps
 
 2. Move training documents
 cp rhessys_training_2021/training_documents/training_parameterize_vegetation.txt scripts/
-cp rhessys_training_2021/training_documents/tule_patch_conifer_high.r scripts/
-cp rhessys_training_2021/training_documents/tule_patch_conifer_high_post.r scripts/
+cp rhessys_training_2021/training_documents/tule_patch_conifer_high.R scripts/
+cp rhessys_training_2021/training_documents/tule_patch_conifer_high_post.R scripts/
 
 
 3. Copy new clim files to ws_tule folder
@@ -19,6 +19,8 @@ cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.base ws_tule/clim/
 cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.rain ws_tule/clim/
 cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.tmax ws_tule/clim/
 cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.tmin ws_tule/clim/
+or 
+cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.* ws_tule/clim/
 
 
 4. Copy new header file to ws_tule folder
@@ -26,12 +28,13 @@ cp rhessys_training_2021/ws_tule/worldfiles/patch_conifer_high.hdr ws_tule/world
 
 
 5. Copy tecfile
+mkdir ws_tule/tecfiles/
 cp rhessys_training_2021/ws_tule/tecfiles/patch_conifer_high.tec ws_tule/tecfiles/
 
 
 6. Set up bin
 mkdir ws_tule/bin
-cp RHESSys/rhessys/rhessys.7.2 ws_tule/bin
+cp RHESSys/rhessys/rhessys7.2 ws_tule/bin
 
 
 7. Run model via R

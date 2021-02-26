@@ -1,0 +1,49 @@
+Parameterizing vegetation 
+
+For the next few weeks, we are going to switch gears. The goal with this next task is to have you start to parameterize a patch in the model that contains a conifer and an understory. The location is South Fork Tule River watershed at 2414 m. This patch has been previously parameterized without mortality turned on but it needs to be reparameterized with mortality. Our goal is to parameterize this vegetation while familiarizing ourselves with the vegetation and soil parameters.
+
+
+Steps
+
+1. Update your rhessys_training_2021 folder by pulling updates from the rhessys_training_2021 github repository.
+
+
+2. Move training documents
+cp rhessys_training_2021/training_documents/training_parameterize_vegetation.txt scripts/
+cp rhessys_training_2021/training_documents/tule_patch_conifer_high.r scripts/
+
+
+3. Copy new clim files to ws_tule folder
+cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.base ws_tule/clim/
+cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.rain ws_tule/clim/
+cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.tmax ws_tule/clim/
+cp rhessys_training_2021/ws_tule/clim/tule_pixel_8_1980_2016.tmin ws_tule/clim/
+
+
+4. Copy new header file to ws_tule folder
+cp rhessys_training_2021/ws_tule/worldfiles/patch_conifer_high.hdr ws_tule/worldfiles/
+
+
+5. Copy tecfile
+cp rhessys_training_2021/ws_tule/tecfiles/patch_conifer_high.tec ws_tule/tecfiles/
+
+
+6. Set up bin
+mkdir ws_tule/bin
+cp RHESSys/rhessys/rhessys.7.2 ws_tule/bin
+
+
+7. Run model via R
+Open scripts/tule_patch_conifer_high.r in Rstudio
+
+
+8. Run model via command line
+
+
+
+
+
+
+
+
+

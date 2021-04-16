@@ -1,0 +1,268 @@
+# GRASS script for setting up individual watersheds 
+# Sagehen
+
+
+# When setting up this script for new basin, the following sections may need to be modified
+# - 'Notes for this specific watershed' section
+# - Watershed number (twice) in 'Select appropriate data' section
+# - DEM and land cover inputs in 'Crop datasets' section
+# - r.watershed threshold in 'Create DEM-derived products' section
+# - r.water.outlet coordinates in 'Create DEM-derived products' section
+# - Approach for reducing land cover types in 'Create LC-derived products' section
+# - Change cover fraction percentages and land cover types in 'Generate cover fraction map' section
+# - Change watershed folder in 'Export rasters' and 'Export vectors' sections
+
+# To run this script in full, use following code
+# sh /Users/ryanbart/work_dir/projects/carb_project/data/grass_scripts/grass_****.txt
+
+
+
+# ------------------------
+# Notes for this specific watershed
+
+USGS number is 10343500
+DEM is USGS_1_n40w121.tif
+Land cover is lc_nlcd_nor_cal
+
+
+ 
+# ------------------------
+# GRASS basics
+
+# This document is a modification of the tutorial found on the RHESSys Wiki for Grass processing, https://github.com/RHESSys/RHESSys/wiki/grass-tutorial-for-creating-necessary-RHESSys-maps. See the wiki for additional information and non-command line options.
+
+# GRASS GIS is an open-source GIS platform. Here is the link to the reference manual, https://grass.osgeo.org/grass78/manuals/index.html. Here is a list of common raster https://grass.osgeo.org/grass78/manuals/raster.html and vector https://grass.osgeo.org/grass78/manuals/vector.html functions.
+
+# Helpful command line functions
+g.region -p                               # Current region settings
+g.list rast                               # List all raster files
+g.list vect                               # List all vector files
+r.info <filename>                         # Details on specific data
+g.remove -f type=raster name=<filename>   # Remove a file
+r.report map=<filename>                   # Make a report on a raster
+g.copy rast=<filename>,MASK               # Add mask
+r.mask -r                                 # Remove mask
+
+
+
+# ------------------------
+# Start GRASS
+
+# Highlight the location (watershed_name) and the Accessible mapset (choose PERMANENT)
+# Click Start GRASS session
+# GRASS should open a terminal window, a Layer Manager window, and a Display window.
+
+
+
+# ------------------------
+# Select appropriate data
+
+# Select single gauge shapefile
+v.extract input=gauges_all where="STAID = 10343500" output=gauge_selected
+
+# Select single watershed shapefile
+v.extract input=watersheds_ref_all where="GAGE_ID = 10343500" output=watershed_selected
+
+# Set buffer around shapefile
+v.buffer input=watershed_selected output=watershed_selected_buf type=area distance=1000 --overwrite
+
+
+
+# ------------------------
+# Set region
+
+# Create a new rgion based on the buffered watershed shapefile
+g.region -a vector=watershed_selected_buf res=90
+
+# Create new bounding box based on new region
+v.in.region output=region_new --overwrite
+
+
+
+# ------------------------
+# Crop datasets
+# Default change in resolution is nearest neighbor (https://grass.osgeo.org/grass78/manuals/rasterintro.html)
+
+# DEM
+r.mapcalc "dem_selected = dem_n40w121" --overwrite
+# Land cover
+r.mapcalc "lc_selected = lc_nlcd_nor_cal" --overwrite
+
+
+
+# ------------------------
+# Create DEM-derived products
+
+# Slope and aspect
+r.slope.aspect  el=dem_selected  slope=slope  aspect=aspect --overwrite
+
+# Horizons
+r.horizon ‐d elevation=dem_selected direction=0 output=east --overwrite
+r.horizon ‐d elevation=dem_selected direction=180 output=west --overwrite
+r.mapcalc 'east_horizon = sin(east_000)' --overwrite
+r.mapcalc 'west_horizon = sin(west_180)' --overwrite
+r.mapcalc 'ehr = east_horizon*100' --overwrite
+r.mapcalc 'whr = west_horizon*100' --overwrite
+
+# Basin, hillslope and stream
+# Threshold can be adjusted to increase or decrease hillslope size
+r.watershed threshold=10 el=dem_selected drain=drain ba=subbasin ha=hill stream=str --overwrite
+
+# Make stream a single color
+r.mapcalc 'streams = (str > 0)*1' --overwrite
+
+# Check size of hillslopes
+r.stats -c -p input=hill    # -c is number of cells for each hillslope, -p is percent of area
+
+# Create patch map: Combines all dem pixels within a hillslope that are within 5 m elevation, then clumps contiguous units.
+r.mapcalc 'alt_elev = int(dem_selected / 10)' --overwrite
+r.mapcalc 'alt_slope = int(slope / 5)' --overwrite
+r.mapcalc 'alt_aspect = int(aspect / 45)' --overwrite
+
+r.mapcalc 'patch = hill * 10000 + alt_elev * 1000 + alt_slope * 100 + alt_aspect * 10' --overwrite
+r.clump input=patch output=patch --overwrite
+
+# Check size of patches
+r.stats -c -p input=patch    # -c is number of cells for each patch, -p is percent of area
+
+
+# ---
+# Display stream and gauges in new monitor (a new monitor is not necessary for this step, but can be easier)
+d.mon start=wx0
+d.rast streams
+d.vect gauge_selected
+
+# Select stream outlets (right click on stream to copy coordinates to clipboard. Add to following line)
+r.water.outlet input=drain output=basin coordinates=737599.9406168025,4368286.456196078 --overwrite
+
+# Display watershed and report size
+d.rast basin
+r.report map=basin units=h,a
+
+# Turn off monitor
+d.mon stop=wx0
+
+# Create mask based on basin boundary
+g.copy rast=basin,MASK
+
+
+
+# ------------------------
+# Create LC-derived products
+
+# For reference, these are the NLCD categories
+# Value	Legend
+# 0	Unclassified
+# 11	Open Water
+# 12	Perennial Snow/Ice
+# 21	Developed, Open Space
+# 22	Developed, Low Intensity
+# 23	Developed, Medium Intensity
+# 24	Developed, High Intensity
+# 31	Barren Land
+# 41	Deciduous Forest
+# 42	Evergreen Forest
+# 43	Mixed Forest
+# 52	Shrub/Scrub
+# 71	Herbaceuous
+# 81	Hay/Pasture
+# 82	Cultivated Crops
+# 90	Woody Wetlands
+# 95	Emergent Herbaceuous Wetlands
+
+# RHESSys categories
+# 50    Understory (evergreen forest)
+# 31    Non-veg (shrubs)
+
+# Evaluate whether some vegetation types should be removed
+r.stats -c -p input=lc_selected
+
+# Create overstory map and remove land cover types that are minuscule
+r.mapcalc 'lc_overstory = if(lc_selected == 95,52,lc_selected)' --overwrite
+r.mapcalc 'lc_overstory = if(lc_overstory == 71,52,lc_overstory)' --overwrite
+r.stats -c -p input=lc_overstory
+
+# Create understory map
+r.mapcalc 'lc_understory = if(lc_overstory == 42,50,31)' --overwrite
+r.stats -c -p input=lc_understory
+
+
+
+# ------------------------
+# Generate cover fraction map
+
+# Generate overstory cover fraction map
+r.mapcalc 'cf_overstory = if(lc_overstory == 52,0.9,0.6)' --overwrite
+
+# Generate understory cover fraction map
+r.mapcalc 'cf_understory = if(lc_understory == 50,0.6,0.6)' --overwrite
+
+
+# ------------------------
+# Generate multi-scale routing map
+# Not implemented
+
+# If keeping patch homogeneous but dividing into aspatial patches for thinning, can use land cover map
+
+
+
+# ------------------------
+# Process climate grids
+# Not implemented
+
+
+
+# ------------------------
+# Export rasters
+
+# Make sure mask is on 
+g.copy rast=basin,MASK
+
+r.out.ascii input=basin@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/basin" --overwrite
+r.out.ascii input=dem_selected@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/dem" --overwrite
+r.out.ascii input=streams@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/streams" --overwrite
+r.out.ascii input=hill@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/hill" --overwrite
+r.out.ascii input=subbasin@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/subbasin" --overwrite
+r.out.ascii input=patch@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/patch" --overwrite
+r.out.ascii input=slope@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/slope" --overwrite
+r.out.ascii input=aspect@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/aspect" --overwrite
+r.out.ascii input=ehr@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/ehr" --overwrite
+r.out.ascii input=whr@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/whr" --overwrite
+r.out.ascii input=lc_overstory@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/lc_overstory" --overwrite
+r.out.ascii input=lc_understory@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/lc_understory" --overwrite
+r.out.ascii input=cf_overstory@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/cf_overstory" --overwrite
+r.out.ascii input=cf_understory@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/cf_understory" --overwrite
+
+# For fire model, need additional dem and patch map with null values equal to -9999
+r.out.ascii input=dem_selected@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/dem_fire_grid" null_value=-9999 precision=0 --overwrite
+r.out.ascii input=patch@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/patch_fire_grid" null_value=-9999 --overwrite
+
+
+
+# ------------------------
+# Export vectors
+
+# Change raster basin map to vector
+r.to.vect input=basin_tule output=basin_tule_v type=area --overwrite
+
+# Output to KMZ
+v.out.ogr input=basin_tule_v output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/basin.kml" format=KML --overwrite
+
+# Output to Shapefile
+v.out.ogr input=basin_tule_v output="/Users/ryanbart/work_dir/projects/carb_project/data/grass_outputs/sagehen/basin.shp" format=ESRI_Shapefile --overwrite
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

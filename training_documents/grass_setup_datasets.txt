@@ -1,0 +1,105 @@
+# Initial setup of GRASS datasets for California
+
+
+
+# ------------------------
+# Sources for data
+
+# DEM: https://www.usgs.gov/core-science-systems/national-geospatial-program/national-map
+# Land cover: https://www.mrlc.gov/
+# Streamflow: https://waterdata.usgs.gov/ca/nwis/uv?site_no=11203580
+# Initial shapefiles: https://water.usgs.gov/GIS/metadata/usgswrd/XML/gagesII_Sept2011.xml
+ 
+
+# ------------------------
+# GRASS basics
+
+# This document is a modification of the tutorial found on the RHESSys Wiki for Grass processing, https://github.com/RHESSys/RHESSys/wiki/grass-tutorial-for-creating-necessary-RHESSys-maps. See the wiki for additional information and non-command line options.
+
+# GRASS GIS is an open-source GIS platform. Here is the link to the reference manual, https://grass.osgeo.org/grass78/manuals/index.html. Here is a list of common raster https://grass.osgeo.org/grass78/manuals/raster.html and vector https://grass.osgeo.org/grass78/manuals/vector.html functions.
+
+# Helpful command line functions
+g.region -p                               # Current region settings
+g.list rast                               # List all raster files
+g.list vect                               # List all vector files
+r.info <filename>                         # Details on specific data
+g.remove -f type=raster name=<filename>   # Remove a file
+r.report map=<filename>                   # Make a report on a raster
+g.copy rast=<filename>,MASK               # Add mask
+r.mask -r                                 # Remove mask
+
+
+
+# ------------------------
+# Start GRASS
+
+# --
+# First time
+
+# Start GRASS
+# For '1. Select GRASS GIS database directory', select directory where you want GRASS data set to be stored. Possibly home folder.
+# For '2 Select GRASS location', select New.
+# For Project Location, type 'watershed_name'. Press Next.
+# Choose method for creating a new location window: choose - Select coordinate system parameters from a list
+# You will need to have the projection info for the project you are setting up. Choose Projection window: choose - Projection code: UTM. Press Next.
+# Choose projection parameters window: choose the button for - Datum with associated ellopsoid, and type in the Projection Zone box: 10. Press Next.
+# Specify geodetic datum window - Datum code box: choose - nad27 with clark66. Press Next.
+# Select datum transformation window pop up: option 1. Press Next.
+# A summary window will open. Press Finish.
+
+# Note: This above sequence may not work. See https://github.com/OSGeo/grass/issues/758
+# Alternatively, go back to 'Choose method for creating a new location window' and choose - Select EPSG code of spatial reference system.
+# Type 26910 for EPSG code.
+# Select datum transformation window pop up: option 1. Press Next.
+# A summary window will open. Press Finish.
+
+# --
+# Subsequent times
+
+# Highlight the location (watershed_name) and the Accessible mapset (choose PERMANENT)
+# Click Start GRASS session
+# GRASS should open a terminal window, a Layer Manager window, and a Display window.
+
+
+
+# ------------------------
+# Import DEMs
+
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/dem/USGS_1_n40w121.tif output=dem_n40w121
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/dem/USGS_1_n41w121.tif output=dem_n41w121
+
+
+# Potential functions for combining dem rasters
+# i.image.mosaic input=dem_n40w121,dem_n41w121 output=mosaic_test
+# r.patch ...
+
+# ------------------------
+# Import NLCD data
+# These files can take 10+ minutes.
+
+# Land Cover: Northern California
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/land_cover/NLCD_northern_california/NLCD_2016_Land_Cover_L48_20190424_NuIKGaqWvz86pymU1LJI.tiff output=lc_nlcd_nor_cal --overwrite
+
+# Land Cover: Central California
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/land_cover/NLCD_central_california/NLCD_2016_Land_Cover_L48_20190424_GzWWtJPEcyNTHdc2HFED.tiff output=lc_nlcd_cen_cal --overwrite
+
+# Land Cover: Southern California
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/land_cover/NLCD_southern_california/NLCD_2016_Land_Cover_L48_20190424_aJtpMLoZcy7kq4CYVivY.tiff output=lc_nlcd_so_cal --overwrite
+
+
+
+# ------------------------
+# Import Gage 2 data
+
+# We will import Gages 2 watershed shapefiles and stream gauge points. We will not specifically use the watershed shapefile in this analysis, as we will create our own from the dem. Rather, the watershed shapefile is used to create a region (with buffer) for the dem and other input files. The stream gauge points will be used for identifying gauge location.
+
+
+# Import watershed shapefiles for all reference watersheds
+v.import input=/Users/ryanbart/work_dir/projects/carb_project/data/gages_2/boundaries-shapefiles-by-aggeco/bas_ref_all.shp output=watersheds_ref_all
+
+# Import point shapefiles for all reference watersheds
+v.import input=/Users/ryanbart/work_dir/projects/carb_project/data/gages_2/gagesII_9322_point_shapefile/gagesII_9322_sept30_2011.shp output=gauges_all
+
+
+
+

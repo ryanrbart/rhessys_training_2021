@@ -1,0 +1,18 @@
+
+# ------------------------
+# Import Livneh grid (This is currently generated in R)
+r.import input=/Users/ryanbart/work_dir/projects/carb_project/data/clim/livneh_grid.tif output=clim_grid --overwrite
+
+# Set region to climate grid
+g.region raster=clim_grid
+
+# Resample dem to climate grid
+https://grasswiki.osgeo.org/wiki/Interpolation
+r.resamp.stats input=dem_1sec output=clim_grid_dem --overwrite
+
+r.out.gdal input=clim_grid_dem@PERMANENT output="/Users/ryanbart/work_dir/projects/carb_project/data/clim/clim_grid_dem.tif" --overwrite
+
+
+
+
+

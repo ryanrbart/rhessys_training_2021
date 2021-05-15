@@ -5,8 +5,12 @@
 # zone map that gets input into RHESSys.
 
 
-source("R/0_utilities.R")
-
+install.packages(raster)
+install.packages(ncdf4)
+install.packages(rgdal)
+library(raster)
+library(ncdf4)
+library(rdgal)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------

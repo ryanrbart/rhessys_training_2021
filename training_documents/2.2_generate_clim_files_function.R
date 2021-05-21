@@ -2,7 +2,19 @@
 # Ryan Bart - May 2021
 
 
-source("R/0_utilities.R")
+install.packages(tidyr)
+install.packages(dplyr)
+install.packages(purrr)
+install.packages(lubridate)
+install.packages(raster)
+library(devtools)
+install_github("ucanr-igis/caladaptr")
+library(tidyr)
+library(dplyr)
+library(purrr)
+library(lubridate)
+library(raster)
+library(caladaptr)
 
 
 # --------------------------------------------------------------------------
@@ -57,6 +69,9 @@ generate_clim_file_from_cal_adapt <- function(slug, clim_grid, clim_grid_dem, wa
   if(clim_scenario == "livneh"){ystart <- 1950; yend <- 2013}
   if(clim_scenario == "historical"){ystart <- 1950; yend <- 2005}
   if(clim_scenario %in% c("rcp45", "rcp85")){ystart <- 2006; yend <- 2099}
+  # On non-observed datasets, the third component of the slug designates GCM
+  clim_gcm <- if(clim_scenario != "livneh") {str_split(slug, "_")[[1]][3]} else {NULL}
+  
   
   # ---- 
   # This function queries a single clim cell and returns data
@@ -72,6 +87,7 @@ generate_clim_file_from_cal_adapt <- function(slug, clim_grid, clim_grid_dem, wa
              year = year(dt))
     return(out)
   }
+  
   
   # ----
   # Download caladapt data (Returns a list of containing data for each clim cell)
@@ -158,21 +174,107 @@ generate_clim_file_from_cal_adapt <- function(slug, clim_grid, clim_grid_dem, wa
 
   # --------------------------------------------------------------------------
   # Export clim file
-
+  
   # Export clim file depending with correct file extension
   if (clim_type == "pr"){
-    write_delim(x = clim_file,
-                file = file.path(output_folder, paste0(paste(watershed_name, slug, ystart, yend, sep = "_"), ".rain")),
-                na="", col_names=FALSE)}
+    if (clim_scenario == "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_scenario, ystart, yend, sep = "_"), ".rain")),
+                  na="", col_names=FALSE)}
+    if (clim_scenario != "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_gcm, clim_scenario, ystart, yend, sep = "_"), ".rain")),
+                  na="", col_names=FALSE)}
+  }
   if (clim_type == "tasmax"){
-    write_delim(x = clim_file,
-                file = file.path(output_folder, paste0(paste(watershed_name, slug, ystart, yend, sep = "_"), ".tmax")),
-                na="", col_names=FALSE)}
+    if (clim_scenario == "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_scenario, ystart, yend, sep = "_"), ".tmax")),
+                  na="", col_names=FALSE)}
+    if (clim_scenario != "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_gcm, clim_scenario, ystart, yend, sep = "_"), ".tmax")),
+                  na="", col_names=FALSE)}
+  }
   if (clim_type == "tasmin"){
-    write_delim(x = clim_file,
-                file = file.path(output_folder, paste0(paste(watershed_name, slug, ystart, yend, sep = "_"), ".tmin")),
-                na="", col_names=FALSE)}
+    if (clim_scenario == "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_scenario, ystart, yend, sep = "_"), ".tmin")),
+                  na="", col_names=FALSE)}
+    if (clim_scenario != "livneh"){
+      write_delim(x = clim_file,
+                  file = file.path(output_folder, paste0(paste(watershed_name, clim_gcm, clim_scenario, ystart, yend, sep = "_"), ".tmin")),
+                  na="", col_names=FALSE)}
+  }
+
 }
+
+
+
+
+
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# Batch function for calling function generate_clim_file_from_cal_adapt
+
+generate_clim_file_via_batch <- function(clim_grid_path,
+                                         clim_grid_dem_path,
+                                         watershed_shapefile_path,
+                                         output_folder,
+                                         watershed_name){
+  
+  # --------------------------------------------------------------------------
+  # Get California-scale data (that can be used in all calls to function)
+  
+  # Establish scenarios (aka slugs in cal-adapt speak)
+  # Slug options
+  # View(ca_catalog_rs())
+  
+  # Vector of all slugs to be called as a batch.
+  slug_long <- c("pr_day_livneh",
+                 "tasmax_day_livneh",
+                 "tasmin_day_livneh",
+                 
+                 "pr_day_HadGEM2-ES_historical",
+                 "tasmax_day_HadGEM2-ES_historical",
+                 "tasmin_day_HadGEM2-ES_historical",
+                 
+                 "pr_day_HadGEM2-ES_rcp45",
+                 "tasmax_day_HadGEM2-ES_rcp45",
+                 "tasmin_day_HadGEM2-ES_rcp45",
+                 
+                 "pr_day_HadGEM2-ES_rcp85",
+                 "tasmax_day_HadGEM2-ES_rcp85",
+                 "tasmin_day_HadGEM2-ES_rcp85"
+  )
+  
+  
+  # Import full clim grid (This was generated in R)
+  clim_grid <- raster::raster(clim_grid_path)
+  
+  # Import dem that has mean elevation for each zone (This was generated in GRASS)
+  clim_grid_dem <- raster::raster(clim_grid_dem_path)
+  
+  # --------------------------------------------------------------------------
+  # Get watershed-scale data and establish watershed-scale variables
+  # Sagehen
+  
+  # Get shapefiles for watershed (This was generated in GRASS)
+  watershed_shapefile <- read_sf(watershed_shapefile_path) %>% 
+    st_transform(crs = 4326)
+  
+  # --------------------------------------------------------------------------
+  
+  # Generate clim files
+  purrr::walk(slug_long, function(x) generate_clim_file_from_cal_adapt(slug=x,
+                                                                       clim_grid=clim_grid,
+                                                                       clim_grid_dem=clim_grid_dem,
+                                                                       watershed_shapefile=watershed_shapefile,
+                                                                       output_folder=output_folder,
+                                                                       watershed_name=watershed_name))
+}
+
 
 
 

@@ -5,13 +5,17 @@
 # Functions for generating a hillslope-level or patch-level worldfile and flowtable
 # Functions for determining which patch or hillslope to choose
 
-
-
-library(RHESSysPreprocessing)
+install.packages(remotes)
+library(remotes)
+remotes::install_github("RHESSys/RHESSysPreprocessing")
+# library(RHESSysPreprocessing)
+library(readr)
+library(tibble)
 library(tidyr)
 library(dplyr)
 library(purrr)
 library(raster)
+library(stringr)
 
 
 # --------------------------------------------------------------------------
@@ -45,19 +49,19 @@ rasters_as_df <- function(input_path, raster_names, input_file_ext=NULL, output_
   # generated from rasterToPoints for the center of each raster (Or, at least, I think it is the center).
   raster_df <- tibble::as_tibble(rasterToPoints(raster_stack))
   # Rename layer to cell_id
-  raster_df <- rename(raster_df, cell_id = layer)
+  raster_df <- dplyr::rename(raster_df, cell_id = layer)
   
   # Generate col and row numbers
-  raster_df <- bind_cols(raster_df, col_num = purrr::map_dbl(raster_df$cell_id, function(x) colFromCell(cells_raster, x)))
-  raster_df <- bind_cols(raster_df, row_num = purrr::map_dbl(raster_df$cell_id, function(x) rowFromCell(cells_raster, x)))
+  raster_df <- dplyr::bind_cols(raster_df, col_num = purrr::map_dbl(raster_df$cell_id, function(x) colFromCell(cells_raster, x)))
+  raster_df <- dplyr::bind_cols(raster_df, row_num = purrr::map_dbl(raster_df$cell_id, function(x) rowFromCell(cells_raster, x)))
   
   # Change order of columns
-  raster_df <- relocate(raster_df, c(cell_id), .before = "x")
-  raster_df <- relocate(raster_df, c(col_num, row_num), .after = "y")
-  raster_df <- relocate(raster_df, c(basin, subbasin, hill, patch), .after = "row_num")
+  raster_df <- dplyr::relocate(raster_df, c(cell_id), .before = "x")
+  raster_df <- dplyr::relocate(raster_df, c(col_num, row_num), .after = "y")
+  raster_df <- dplyr::relocate(raster_df, c(basin, subbasin, hill, patch), .after = "row_num")
   
   # Write output
-  write_csv(raster_df, output_file)
+  readr::write_csv(raster_df, output_file)
   
   return(raster_df)
 }
@@ -82,11 +86,11 @@ rasters_as_df <- function(input_path, raster_names, input_file_ext=NULL, output_
 
 select_worldfile_patch <- function(worldfile, out, basin, hill, zone, patch){
   
-  world <- read_world(worldfile)
+  world <- RHESSysPreprocessing::read_world(worldfile)
   
   # Remove last digit of canopy strata ID to make it the same as patch ID. Then filter for selected IDs.
   world <- world %>% 
-    dplyr::mutate(ID = if_else(level == "canopy_strata", str_sub(ID, 1, nchar(ID)-1), ID)) %>% 
+    dplyr::mutate(ID = if_else(level == "canopy_strata", stringr::str_sub(ID, 1, nchar(ID)-1), ID)) %>% 
     dplyr::filter(level == "world" | 
                     level == "basin" & ID == basin | 
                     level == "hillslope" & ID == hill |
@@ -95,7 +99,7 @@ select_worldfile_patch <- function(worldfile, out, basin, hill, zone, patch){
                     level == "canopy_strata" & ID == patch)
   
   # Change the number of basins, hillslopes, zones and patches to 1.
-  world <- mutate(world, values = if_else(vars %in% c("num_basins", "num_hillslopes", "num_zones", "num_patches"), "1", values))
+  world <- dplyr::mutate(world, values = if_else(vars %in% c("num_basins", "num_hillslopes", "num_zones", "num_patches"), "1", values))
   
   # Export worldfile
   write.table(dplyr::select(world, values, vars), file = out, row.names = FALSE, col.names = FALSE, quote=FALSE, sep="  ")
@@ -106,7 +110,7 @@ select_worldfile_patch <- function(worldfile, out, basin, hill, zone, patch){
 
 select_worldfile_hillslope <- function(worldfile, out, basin, hill){
   
-  world <- read_world(worldfile)
+  world <- RHESSysPreprocessing::read_world(worldfile)
   
   world <- world %>% 
     dplyr::mutate(hill_ID = case_when(level == "world" ~ "0",
@@ -122,7 +126,7 @@ select_worldfile_hillslope <- function(worldfile, out, basin, hill){
                     hill_ID == hill)
   
   # Change the number of basins and hillslopes to 1.
-  world <- mutate(world, values = if_else(vars %in% c("num_basins", "num_hillslopes"), "1", values))
+  world <- dplyr::mutate(world, values = if_else(vars %in% c("num_basins", "num_hillslopes"), "1", values))
   
   # Export worldfile
   write.table(dplyr::select(world, values, vars), file = out, row.names = FALSE, col.names = FALSE, quote=FALSE, sep="  ")
@@ -134,7 +138,7 @@ select_worldfile_hillslope <- function(worldfile, out, basin, hill){
 select_flowtable_patch <- function(flowtable, out, patch){
   
   # Flow table is read in as a list
-  flow <- read_in_flow(flowtable)
+  flow <- RHESSysPreprocessing::read_in_flow(flowtable)
   
   # Keep the component of the list associated with the patch ID.
   flow <- purrr::keep(flow, function(x) x$PatchID == patch)
@@ -151,7 +155,7 @@ select_flowtable_patch <- function(flowtable, out, patch){
 select_flowtable_hillslope <- function(flowtable, out, hill){
   
   # Flow table is read in as a list
-  flow <- read_in_flow(flowtable)
+  flow <- RHESSysPreprocessing::read_in_flow(flowtable)
   
   # Keep the component of the list associated with the patch ID.
   flow <- purrr::keep(flow, function(x) x$HillID == hill)
